@@ -17,6 +17,7 @@ pipeline {
     }
 
     tools {
+        jdk 'jdk-21'
         maven 'Maven-3.9'  // Configurez dans Jenkins Global Tools
     }
 

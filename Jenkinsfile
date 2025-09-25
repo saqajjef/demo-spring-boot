@@ -49,11 +49,11 @@ pipeline {
                     }*/
                 }
 
-                /*stage('Code Quality') {
+                stage('Code Quality') {
                     steps {
                         sh 'mvn sonar:sonar || true'  // Optionnel si SonarQube configuré
                     }
-                }*/
+                }
             }
         }
 

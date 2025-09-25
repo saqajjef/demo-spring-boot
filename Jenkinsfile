@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'maroki92/maven-jdk21-trivy:latest' // image Docker custom avec Maven 3.9 + JDK21 + Trivy
+            args '-v $HOME/.m2:/root/.m2 -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     environment {
         // Configuration de base
@@ -16,10 +21,9 @@ pipeline {
         MAVEN_OPTS = '-Dmaven.repo.local=/var/jenkins_home/.m2/repository'
     }
 
-    tools {
-        jdk 'jdk-21'
+    /*tools {
         maven 'Maven-3.9'  // Configurez dans Jenkins Global Tools
-    }
+    }*/
 
     stages {
         stage('Checkout') {
@@ -83,17 +87,32 @@ pipeline {
             }
         }
 
-        /*stage('Security Scan') {
+        stage('Security Scan') {
             steps {
-                script {
-                    // Scan de sécurité avec Trivy (optionnel)
-                    sh """
-                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
-                        aquasec/trivy image --format table --exit-code 0 ${IMAGE_NAME}:${BUILD_TAG} || true
-                    """
+                sh """
+                    mkdir -p trivy-reports
+                    trivy image --exit-code 0 --severity HIGH,CRITICAL \
+                        --format json --output trivy-reports/trivy-report.json \
+                        ${IMAGE_NAME}:${BUILD_TAG}
+                    trivy convert --format template --template @contrib/html.tpl \
+                        trivy-reports/trivy-report.json > trivy-reports/trivy-report.html
+                """
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-reports/*', allowEmptyArchive: true
+
+                    publishHTML([
+                        reportDir: 'trivy-reports',
+                        reportFiles: 'trivy-report.html',
+                        reportName: 'Trivy Security Report',
+                        keepAll: true,
+                        alwaysLinkToLastBuild: true,
+                        allowMissing: true
+                    ])
                 }
             }
-        }*/
+        }
 
         /*stage('Deploy to Dev') {
             when {

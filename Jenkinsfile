@@ -89,6 +89,7 @@ pipeline {
 
         stage('Security Scan') {
             steps {
+                sh 'ls -l /usr/local/share/trivy'
                 sh """
                     mkdir -p trivy-reports
                     trivy image --exit-code 0 --severity HIGH,CRITICAL \

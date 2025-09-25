@@ -41,12 +41,12 @@ pipeline {
                     steps {
                         sh 'mvn clean test'
                     }
-                    /*post {
+                    post {
                         always {
                             junit 'target/surefire-reports/*.xml'
-                            publishCoverage adapters: [jacocoAdapter('target/site/jacoco/jacoco.xml')]
+                            //publishCoverage adapters: [jacocoAdapter('target/site/jacoco/jacoco.xml')]
                         }
-                    }*/
+                    }
                 }
 
                 stage('Code Quality') {

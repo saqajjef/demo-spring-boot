@@ -92,10 +92,9 @@ pipeline {
                 sh """
                     mkdir -p trivy-reports
                     trivy image --exit-code 0 --severity HIGH,CRITICAL \
-                        --format json --output trivy-reports/trivy-report.json \
-                        ${IMAGE_NAME}:${BUILD_TAG}
-                    trivy convert --format template --template @contrib/html.tpl \
-                        trivy-reports/trivy-report.json > trivy-reports/trivy-report.html
+                      --format template --template "@html" \
+                      --output trivy-reports/trivy-report.html ${IMAGE_NAME}:${BUILD_TAG}
+
                 """
             }
             post {

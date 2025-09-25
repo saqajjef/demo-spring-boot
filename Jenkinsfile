@@ -51,7 +51,14 @@ pipeline {
 
                 stage('Code Quality') {
                     steps {
-                        sh 'mvn sonar:sonar || true'  // Optionnel si SonarQube configuré
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                            sh """
+                                mvn sonar:sonar \
+                                  -Dsonar.projectKey=${APP_NAME} \
+                                  -Dsonar.host.url=http://sonarqube:9000 \
+                                  -Dsonar.login=$SONAR_TOKEN
+                            """
+                        }
                     }
                 }
             }

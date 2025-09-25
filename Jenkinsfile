@@ -91,12 +91,19 @@ pipeline {
             steps {
                 sh 'ls -l /usr/local/share/trivy'
                 sh """
-                    mkdir -p trivy-reports
-                    trivy image --exit-code 0 --severity HIGH,CRITICAL \
-                      --format template --template /usr/local/share/trivy/html.tpl \
-                      --output trivy-reports/trivy-report.html ${IMAGE_NAME}:${BUILD_TAG}
+                  rm -rf trivy-reports
+                  mkdir -p trivy-reports
 
+                  # Scan en JSON
+                  trivy image --format json -o trivy-reports/trivy-report.json ${IMAGE_NAME}:${BUILD_TAG}
+
+                  # Conversion en HTML avec template
+                  trivy convert --format template \
+                    --template /usr/local/share/trivy/html.tpl \
+                    --output trivy-reports/trivy-report.html \
+                    trivy-reports/trivy-report.json
                 """
+                archiveArtifacts artifacts: 'trivy-reports/*', allowEmptyArchive: false
             }
             post {
                 always {

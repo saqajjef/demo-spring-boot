@@ -92,7 +92,7 @@ pipeline {
                 sh """
                     mkdir -p trivy-reports
                     trivy image --exit-code 0 --severity HIGH,CRITICAL \
-                      --format template --template "@html" \
+                      --format template --template /usr/local/share/trivy/html.tpl \
                       --output trivy-reports/trivy-report.html ${IMAGE_NAME}:${BUILD_TAG}
 
                 """

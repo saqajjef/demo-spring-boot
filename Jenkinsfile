@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'maroki92/maven-jdk21-trivy:latest' // image Docker custom avec Maven 3.9 + JDK21 + Trivy
-            args '-v $HOME/.m2:/root/.m2 -v /var/run/docker.sock:/var/run/docker.sock'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
 

@@ -84,9 +84,6 @@ pipeline {
                   echo "Auteur: ${author}"
                 }
               }
-            }
-          }
-        }
 
         stage('Test & Build') {
             parallel {

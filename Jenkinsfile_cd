@@ -23,8 +23,8 @@ pipeline {
                             sed -i 's|image: .*|image: ${IMAGE_NAME}:${BUILD_TAG}|' apps/demo-spring/instance-demo-spring.yaml
 
                             # Ajouter annotations si absent
-                            grep -q '^  annotations:' apps/demo-spring/instance-demo-spring.yaml || \
-                                sed -i '/metadata:/a\\  annotations:' apps/demo-spring/instance-demo-spring.yaml
+                            #grep -q '^  annotations:' apps/demo-spring/instance-demo-spring.yaml || \
+                                #sed -i '/metadata:/a\\  annotations:' apps/demo-spring/instance-demo-spring.yaml
 
                             # Forcer annotation jenkins-build
                             sed -i '/annotations:/a\\    jenkins-build: ${BUILD_TAG}' apps/demo-spring/instance-demo-spring.yaml

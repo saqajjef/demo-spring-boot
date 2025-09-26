@@ -117,87 +117,35 @@ pipeline {
             }
         }
 
-        /*stage('Deploy to Dev') {
-            when {
-                anyOf {
-                    branch 'develop'
-                    branch 'main'
-                    branch 'master'
-                }
-            }
+        stage('Update Flux Manifests') {
             steps {
-                script {
-                    deployToK8s('dev', env.BUILD_TAG)
-                }
-            }
-        }*/
+                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                    script {
+                        sh """
+                            rm -rf flux-tmp
+                            git clone https://saqajjef:${GITHUB_TOKEN}@github.com/saqajjef/flux.git flux-tmp
+                            cd flux-tmp
 
-        /*stage('Integration Tests') {
-            when {
-                anyOf {
-                    branch 'develop'
-                    branch 'main'
-                    branch 'master'
-                }
-            }
-            steps {
-                script {
-                    // Attendre que le déploiement soit prêt
-                    sh """
-                        kubectl wait --for=condition=available --timeout=300s \\
-                        deployment/dev-spring-app -n ${K8S_NAMESPACE_DEV}
-                    """
+                            echo 'Ancien tag :'
+                            grep 'image:' apps/demo-spring/instance-demo-spring.yaml
 
-                    // Tests d'intégration
-                    sh """
-                        sleep 30
-                        kubectl get pods -n ${K8S_NAMESPACE_DEV}
-                        # Ajoutez vos tests d'intégration ici
-                    """
-                }
-            }
-        }*/
+                            # Mise à jour du tag
+                            sed -i 's|image: .*|image: ${IMAGE_NAME}:${BUILD_TAG}|' apps/demo-spring/instance-demo-spring.yaml
 
-        /*stage('Deploy to Production') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
-            steps {
-                script {
-                    // Demande d'approbation pour la production
-                    timeout(time: 10, unit: 'MINUTES') {
-                        input message: 'Déployer en production?',
-                              submitter: 'admin,deployer'
+                            echo 'Nouveau tag :'
+                            grep 'image:' apps/demo-spring/instance-demo-spring.yaml
+
+                            git config user.email "jenkins@ci.local"
+                            git config user.name "Jenkins CI"
+
+                            git add apps/demo-spring/instance-demo-spring.yaml
+                            git commit -m "chore: update image tag to ${IMAGE_NAME}:${BUILD_TAG}" || echo "No changes to commit"
+                            git push origin main
+                        """
                     }
-
-                    deployToK8s('prod', env.BUILD_TAG)
                 }
             }
-        }*/
-
-        /*stage('Smoke Tests Prod') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
-            steps {
-                script {
-                    sh """
-                        kubectl wait --for=condition=available --timeout=300s \\
-                        deployment/prod-spring-app -n ${K8S_NAMESPACE_PROD}
-
-                        # Tests de fumée
-                        sleep 30
-                        echo "Application déployée en production avec succès!"
-                    """
-                }
-            }
-        }*/
+        }
     }
 
     post {
@@ -234,20 +182,4 @@ pipeline {
             echo "⚠️ Pipeline instable - vérifiez les tests"
         }
     }
-}
-
-// Fonction helper pour le déploiement
-def deployToK8s(environment, imageTag) {
-    sh """
-        cd k8s/overlays/${environment}
-
-        # Mise à jour de l'image
-        kustomize edit set image spring-app=${IMAGE_NAME}:${imageTag}
-
-        # Application des manifests
-        kustomize build . | kubectl apply -f -
-
-        # Vérification du déploiement
-        kubectl rollout status deployment/${environment}-spring-app -n ${environment == 'dev' ? K8S_NAMESPACE_DEV : K8S_NAMESPACE_PROD}
-    """
 }

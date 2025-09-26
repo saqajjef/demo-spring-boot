@@ -58,7 +58,8 @@ pipeline {
                     'CHANGE_BRANCH'
                   ]
                   gitVars.each { v ->
-                    echo "${v} = ${env[v] ?: '<non défini>'}"
+                    def value = env."${v}"   // interpolation qui contourne le problème
+                    echo "${v} = ${value ?: '<non défini>'}"
                   }
 
                   echo "=== Infos Git détaillées via commandes ==="

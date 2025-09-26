@@ -38,18 +38,6 @@ pipeline {
                 }
             }
         }
-
-        pipeline {
-          agent any
-
-          stages {
-            stage('Checkout') {
-              steps {
-                // Exemple: récupère ton repo
-                git branch: 'main', url: 'https://github.com/ton-org/ton-repo.git'
-              }
-            }
-
             stage('Debug Git Variables') {
               steps {
                 script {
@@ -84,6 +72,7 @@ pipeline {
                   echo "Auteur: ${author}"
                 }
               }
+            }
 
         stage('Test & Build') {
             parallel {

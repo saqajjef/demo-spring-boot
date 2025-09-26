@@ -131,6 +131,7 @@ pipeline {
 
                             # Mise à jour du tag
                             sed -i 's|image: .*|image: ${IMAGE_NAME}:${BUILD_TAG}|' apps/demo-spring/instance-demo-spring.yaml
+                            sed -i "s|annotations:.*|annotations:\n    jenkins-build: ${BUILD_TAG}|" apps/demo-spring/instance-demo-spring.yaml
 
                             echo 'Nouveau tag :'
                             grep 'image:' apps/demo-spring/instance-demo-spring.yaml

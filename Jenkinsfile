@@ -30,50 +30,10 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    env.GIT_COMMIT_SHORT = sh(
-                        script: "git rev-parse --short HEAD",
-                        returnStdout: true
-                    ).trim()
-                    env.BUILD_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
+                    env.BUILD_TAG = "${env.GIT_COMMIT}"
                 }
             }
         }
-            stage('Debug Git Variables') {
-              steps {
-                script {
-                  echo "=== Git variables connues par Jenkins ==="
-                  def gitVars = [
-                    'GIT_COMMIT',
-                    'GIT_PREVIOUS_COMMIT',
-                    'GIT_PREVIOUS_SUCCESSFUL_COMMIT',
-                    'GIT_BRANCH',
-                    'GIT_LOCAL_BRANCH',
-                    'GIT_URL',
-                    'GIT_AUTHOR_NAME',
-                    'GIT_AUTHOR_EMAIL',
-                    'GIT_COMMITTER_NAME',
-                    'GIT_COMMITTER_EMAIL',
-                    'CHANGE_ID',
-                    'CHANGE_TARGET',
-                    'CHANGE_BRANCH'
-                  ]
-                  gitVars.each { v ->
-                    def value = env."${v}"   // interpolation qui contourne le problème
-                    echo "${v} = ${value ?: '<non défini>'}"
-                  }
-
-                  echo "=== Infos Git détaillées via commandes ==="
-                  // Affiche le dernier commit complet
-                  sh 'git log -1 --pretty=fuller'
-                  // Exemple: récupérer seulement le message du commit
-                  def msg = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
-                  echo "Dernier commit message: ${msg}"
-                  // Exemple: récupérer l'auteur
-                  def author = sh(returnStdout: true, script: 'git log -1 --pretty=%an <%ae>').trim()
-                  echo "Auteur: ${author}"
-                }
-              }
-            }
 
         stage('Test & Build') {
             parallel {

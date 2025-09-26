@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'BUILD_TAG', defaultValue: '', description: 'Tag de l’image Docker à déployer')
+        string(name: 'IMAGE_NAME', defaultValue: '', description: 'Nom complet de l’image (registry/app)')
+    }
+
+    stages {
+        stage('Update Flux Manifests') {
+            steps {
+                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                    script {
+                        sh """
+                            rm -rf flux-tmp
+                            git clone https://saqajjef:${GITHUB_TOKEN}@github.com/saqajjef/flux.git flux-tmp
+                            cd flux-tmp
+
+                            echo 'Ancien tag :'
+                            grep 'image:' apps/demo-spring/instance-demo-spring.yaml || true
+
+                            # Mise à jour du tag image
+                            sed -i 's|image: .*|image: ${IMAGE_NAME}:${BUILD_TAG}|' apps/demo-spring/instance-demo-spring.yaml
+
+                            # Ajouter annotations si absent
+                            grep -q '^  annotations:' apps/demo-spring/instance-demo-spring.yaml || \
+                                sed -i '/metadata:/a\\  annotations:' apps/demo-spring/instance-demo-spring.yaml
+
+                            # Forcer annotation jenkins-build
+                            sed -i '/annotations:/a\\    jenkins-build: ${BUILD_TAG}' apps/demo-spring/instance-demo-spring.yaml
+
+                            echo 'Nouveau tag :'
+                            grep 'image:' apps/demo-spring/instance-demo-spring.yaml
+
+                            git config user.email "jenkins@ci.local"
+                            git config user.name "Jenkins CI"
+
+                            git add apps/demo-spring/instance-demo-spring.yaml
+                            git commit -m "chore: update image tag to ${IMAGE_NAME}:${BUILD_TAG}" || echo "No changes to commit"
+                            git push origin main
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ CD pipeline a mis à jour les manifests Flux"
+        }
+        failure {
+            echo "❌ CD pipeline a échoué"
+        }
+    }
+}

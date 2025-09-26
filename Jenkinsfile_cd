@@ -22,15 +22,23 @@ pipeline {
                             # Mise à jour du tag image
                             sed -i 's|image: .*|image: ${IMAGE_NAME}:${BUILD_TAG}|' apps/demo-spring/instance-demo-spring.yaml
 
-                            # Ajouter annotations si absent
-                            #grep -q '^  annotations:' apps/demo-spring/instance-demo-spring.yaml || \
-                                #sed -i '/metadata:/a\\  annotations:' apps/demo-spring/instance-demo-spring.yaml
+                            # === Gestion annotation jenkins-build ===
+                            if grep -q 'jenkins-build:' apps/demo-spring/instance-demo-spring.yaml; then
+                              # Mise à jour de la valeur existante
+                              sed -i "s|jenkins-build:.*|jenkins-build: ${BUILD_TAG}|" apps/demo-spring/instance-demo-spring.yaml
+                            else
+                              # S'assurer que 'annotations:' existe
+                              grep -q '^  annotations:' apps/demo-spring/instance-demo-spring.yaml || \
+                                  sed -i '/metadata:/a\\  annotations:' apps/demo-spring/instance-demo-spring.yaml
 
-                            # Forcer annotation jenkins-build
-                            sed -i '/annotations:/a\\    jenkins-build: ${BUILD_TAG}' apps/demo-spring/instance-demo-spring.yaml
+                              # Ajouter l'annotation si absente
+                              sed -i "/annotations:/a\\    jenkins-build: ${BUILD_TAG}" apps/demo-spring/instance-demo-spring.yaml
+                            fi
+                            # ======================================
 
-                            echo 'Nouveau tag :'
-                            grep 'image:' apps/demo-spring/instance-demo-spring.yaml
+                            echo 'Nouveau tag et annotation :'
+                            grep -E 'image:|jenkins-build:' apps/demo-spring/instance-demo-spring.yaml || true
+
 
                             git config user.email "jenkins@ci.local"
                             git config user.name "Jenkins CI"

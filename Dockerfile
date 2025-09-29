@@ -1,5 +1,5 @@
 # Dockerfile multi-stage pour Spring Boot Maven JDK 21
-FROM eclipse-temurin:21-jdk-jammy AS builder
+FROM eclipse-temurin:21.0.8_9-jdk-jammy AS builder
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ COPY src src
 RUN ./mvnw clean package -DskipTests
 
 # Image finale
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21.0.8_9-jre-jammy
 
 # Création utilisateur non-root
 RUN groupadd -r spring && useradd -r -g spring spring

@@ -17,10 +17,24 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                /*checkout scm
                 script {
                     env.BUILD_TAG = "${env.GIT_COMMIT}"
+                }*/
+                script {
+                    // Checkout du repo avec branche correcte
+                    checkout([$class: 'GitSCM',
+                        branches: [[name: "*/${env.BRANCH_NAME}"]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/saqajjef/demo-spring-boot.git',
+                            credentialsId: 'github-token'
+                        ]]
+                    ])
+                    env.BUILD_TAG = "${env.GIT_COMMIT}"
                 }
+
             }
         }
 

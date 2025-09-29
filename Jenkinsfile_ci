@@ -24,6 +24,25 @@ pipeline {
             }
         }
 
+        stage('Afficher les variables Git/GitHub') {
+            steps {
+                script {
+                    echo "=== Variables d'environnement Git/GitHub disponibles ==="
+
+                    // Affiche toutes les variables Jenkins
+                    sh 'printenv | sort'
+
+                    // Affiche certaines variables Git fournies par le plugin Git de Jenkins
+                    echo "GIT_COMMIT: ${env.GIT_COMMIT}"
+                    echo "GIT_BRANCH: ${env.GIT_BRANCH}"
+                    echo "GIT_URL: ${env.GIT_URL}"
+                    echo "GIT_LOCAL_BRANCH: ${env.GIT_LOCAL_BRANCH}"
+                    echo "GIT_PREVIOUS_COMMIT: ${env.GIT_PREVIOUS_COMMIT}"
+                    echo "GIT_PREVIOUS_SUCCESSFUL_COMMIT: ${env.GIT_PREVIOUS_SUCCESSFUL_COMMIT}"
+                }
+            }
+        }
+
         stage('Test & Build') {
             parallel {
                 stage('Unit Tests') {
